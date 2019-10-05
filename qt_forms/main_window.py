@@ -10,52 +10,52 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1124, 724)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
+class Ui_Main(object):
+    def setupUi(self, Main):
+        Main.setObjectName("Main")
+        Main.resize(1124, 724)
+        self.centralwidget = QtWidgets.QWidget(Main)
         self.centralwidget.setObjectName("centralwidget")
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        Main.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(Main)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1124, 21))
         self.menubar.setObjectName("menubar")
         self.menuTrading = QtWidgets.QMenu(self.menubar)
         self.menuTrading.setObjectName("menuTrading")
         self.menuAutotrading = QtWidgets.QMenu(self.menubar)
         self.menuAutotrading.setObjectName("menuAutotrading")
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        Main.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(Main)
         self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
-        self.actionLogin = QtWidgets.QAction(MainWindow)
+        Main.setStatusBar(self.statusbar)
+        self.actionLogin = QtWidgets.QAction(Main)
         self.actionLogin.setCheckable(False)
         self.actionLogin.setObjectName("actionLogin")
-        self.actionLogout = QtWidgets.QAction(MainWindow)
-        self.actionLogout.setObjectName("actionLogout")
+        self.actionAccInfo = QtWidgets.QAction(Main)
+        self.actionAccInfo.setObjectName("actionAccInfo")
         self.menuTrading.addSeparator()
         self.menuTrading.addAction(self.actionLogin)
-        self.menuTrading.addAction(self.actionLogout)
+        self.menuTrading.addAction(self.actionAccInfo)
         self.menubar.addAction(self.menuTrading.menuAction())
         self.menubar.addAction(self.menuAutotrading.menuAction())
 
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.retranslateUi(Main)
+        QtCore.QMetaObject.connectSlotsByName(Main)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self, Main):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.menuTrading.setTitle(_translate("MainWindow", "Trading"))
-        self.menuAutotrading.setTitle(_translate("MainWindow", "Autotrading"))
-        self.actionLogin.setText(_translate("MainWindow", "Login"))
-        self.actionLogout.setText(_translate("MainWindow", "Logout"))
+        Main.setWindowTitle(_translate("Main", "MainWindow"))
+        self.menuTrading.setTitle(_translate("Main", "Trading"))
+        self.menuAutotrading.setTitle(_translate("Main", "Autotrading"))
+        self.actionLogin.setText(_translate("Main", "Login"))
+        self.actionAccInfo.setText(_translate("Main", "Acc Info"))
 
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    Main = QtWidgets.QMainWindow()
+    ui = Ui_Main()
+    ui.setupUi(Main)
+    Main.show()
     sys.exit(app.exec_())

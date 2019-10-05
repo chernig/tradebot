@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>Main</class>
+ <widget class="QMainWindow" name="Main">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -29,7 +29,7 @@
     </property>
     <addaction name="separator"/>
     <addaction name="actionLogin"/>
-    <addaction name="actionLogout"/>
+    <addaction name="actionAccInfo"/>
    </widget>
    <widget class="QMenu" name="menuAutotrading">
     <property name="title">
@@ -48,9 +48,9 @@
     <string>Login</string>
    </property>
   </action>
-  <action name="actionLogout">
+  <action name="actionAccInfo">
    <property name="text">
-    <string>Logout</string>
+    <string>Acc Info</string>
    </property>
   </action>
  </widget>
