@@ -14,6 +14,10 @@ class Fxcm():
         return self.connection.get_accounts()
     def update_token(self, new_token):
         self.token = new_token
+    def get_open_positions(self):
+        return self.connection.get_open_positions_summary()
+    def get_closed_positions(self):
+        return self.connection.get_closed_positions_summary()
 
         
 if __name__ == "__main__":

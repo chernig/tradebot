@@ -1,6 +1,7 @@
 from main_window import Ui_Main
 from login_popup import Ui_Login
 from acc_info_popup import Ui_Account
+from positions_popup import Ui_Positions
 from fxcm_controller import Fxcm
 import sys
 import pandas
@@ -18,6 +19,7 @@ class GUI():
         self.ui.setupUi(self.main_window)
         self.ui.actionLogin.triggered.connect(self.open_login)
         self.ui.actionAccInfo.triggered.connect(self.open_acc_info)
+        self.ui.actionPositions.triggered.connect(self.open_positions)
         self.controller = Fxcm()
     def open_login(self):
         self.dialog = QtWidgets.QDialog()
@@ -39,6 +41,27 @@ class GUI():
         data = [str(x) for x in list(self.data.iloc[0])]
         for x in range(len(data)):
             self.ui.tableWidget.setItem(x, 0, QTableWidgetItem(data[x]))
+        self.dialog.show()
+    def open_positions(self):
+        self.dialog = QtWidgets.QDialog()
+        self.ui = Ui_Positions()
+        self.ui.setupUi(self.dialog)
+        self.data = self.controller.get_open_positions()
+        self.ui.tableWidget.setRowCount(len(self.data.iloc[0]))
+        self.ui.tableWidget.setColumnCount(1)
+        self.ui.tableWidget.setVerticalHeaderLabels(self.data.columns.values.tolist())
+        self.ui.tableWidget.setHorizontalHeaderLabels(['values'])
+        data = [str(x) for x in list(self.data.iloc[0])]
+        for x in range(len(data)):
+            self.ui.tableWidget.setItem(x, 0, QTableWidgetItem(data[x]))
+        self.data = self.controller.get_closed_positions()
+        self.ui.tableWidget_2.setRowCount(len(self.data.iloc[0]))
+        self.ui.tableWidget_2.setColumnCount(1)
+        self.ui.tableWidget_2.setVerticalHeaderLabels(self.data.columns.values.tolist())
+        self.ui.tableWidget_2.setHorizontalHeaderLabels(['values'])
+        data = [str(x) for x in list(self.data.iloc[0])]
+        for x in range(len(data)):
+            self.ui.tableWidget_2.setItem(x, 0, QTableWidgetItem(data[x]))
         self.dialog.show()
     def launch(self):
         self.main_window.show()

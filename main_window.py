@@ -33,9 +33,12 @@ class Ui_Main(object):
         self.actionLogin.setObjectName("actionLogin")
         self.actionAccInfo = QtWidgets.QAction(Main)
         self.actionAccInfo.setObjectName("actionAccInfo")
+        self.actionPositions = QtWidgets.QAction(Main)
+        self.actionPositions.setObjectName("actionPositions")
         self.menuTrading.addSeparator()
         self.menuTrading.addAction(self.actionLogin)
         self.menuTrading.addAction(self.actionAccInfo)
+        self.menuTrading.addAction(self.actionPositions)
         self.menubar.addAction(self.menuTrading.menuAction())
         self.menubar.addAction(self.menuAutotrading.menuAction())
 
@@ -49,6 +52,7 @@ class Ui_Main(object):
         self.menuAutotrading.setTitle(_translate("Main", "Autotrading"))
         self.actionLogin.setText(_translate("Main", "Login"))
         self.actionAccInfo.setText(_translate("Main", "Acc Info"))
+        self.actionPositions.setText(_translate("Main", "Positions"))
 
 
 if __name__ == "__main__":
