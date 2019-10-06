@@ -48,10 +48,10 @@
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>160</x>
+     <x>156</x>
      <y>40</y>
-     <width>47</width>
-     <height>13</height>
+     <width>71</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
@@ -63,25 +63,35 @@
     <rect>
      <x>30</x>
      <y>230</y>
-     <width>75</width>
+     <width>81</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>Connect</string>
+    <string>Update token</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>70</y>
+     <width>51</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>API Token</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit">
    <property name="geometry">
     <rect>
      <x>120</x>
-     <y>230</y>
-     <width>75</width>
-     <height>23</height>
+     <y>70</y>
+     <width>271</width>
+     <height>20</height>
     </rect>
-   </property>
-   <property name="text">
-    <string>Disconnect</string>
    </property>
   </widget>
  </widget>

@@ -24,15 +24,18 @@ class Ui_Login(object):
         self.label.setScaledContents(False)
         self.label.setObjectName("label")
         self.label_2 = QtWidgets.QLabel(Login)
-        self.label_2.setGeometry(QtCore.QRect(160, 40, 47, 13))
+        self.label_2.setGeometry(QtCore.QRect(156, 40, 71, 20))
         self.label_2.setText("")
         self.label_2.setObjectName("label_2")
         self.pushButton = QtWidgets.QPushButton(Login)
-        self.pushButton.setGeometry(QtCore.QRect(30, 230, 75, 23))
+        self.pushButton.setGeometry(QtCore.QRect(30, 230, 81, 23))
         self.pushButton.setObjectName("pushButton")
-        self.pushButton_2 = QtWidgets.QPushButton(Login)
-        self.pushButton_2.setGeometry(QtCore.QRect(120, 230, 75, 23))
-        self.pushButton_2.setObjectName("pushButton_2")
+        self.label_3 = QtWidgets.QLabel(Login)
+        self.label_3.setGeometry(QtCore.QRect(40, 70, 51, 16))
+        self.label_3.setObjectName("label_3")
+        self.lineEdit = QtWidgets.QLineEdit(Login)
+        self.lineEdit.setGeometry(QtCore.QRect(120, 70, 271, 20))
+        self.lineEdit.setObjectName("lineEdit")
 
         self.retranslateUi(Login)
         self.buttonBox.accepted.connect(Login.accept)
@@ -43,8 +46,8 @@ class Ui_Login(object):
         _translate = QtCore.QCoreApplication.translate
         Login.setWindowTitle(_translate("Login", "Dialog"))
         self.label.setText(_translate("Login", "Connection status"))
-        self.pushButton.setText(_translate("Login", "Connect"))
-        self.pushButton_2.setText(_translate("Login", "Disconnect"))
+        self.pushButton.setText(_translate("Login", "Update token"))
+        self.label_3.setText(_translate("Login", "API Token"))
 
 
 if __name__ == "__main__":

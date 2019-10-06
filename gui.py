@@ -1,5 +1,5 @@
 from main_window import Ui_Main
-from login_window import Ui_Login
+from login_popup import Ui_Login
 from acc_info_popup import Ui_Account
 from fxcm_controller import Fxcm
 import sys
@@ -24,6 +24,8 @@ class GUI():
         self.ui = Ui_Login()
         self.ui.setupUi(self.dialog)
         self.ui.label_2.setText(str(self.controller.connection_status))
+        self.ui.lineEdit.setText(self.controller.token)
+        self.ui.pushButton.clicked.connect(lambda: self.controller.update_token(self.ui.lineEdit.text()))
         self.dialog.show()
     def open_acc_info(self):
         self.dialog = QtWidgets.QDialog()
