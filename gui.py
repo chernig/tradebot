@@ -5,7 +5,7 @@ from fxcm_controller import Fxcm
 import sys
 import pandas
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QTableWidgetItem
 from PyQt5.QtCore import QAbstractTableModel, Qt
 
 
@@ -31,35 +31,18 @@ class GUI():
         self.dialog = QtWidgets.QDialog()
         self.ui = Ui_Account()
         self.ui.setupUi(self.dialog)
-        self.ui.tableView.setModel(Pandas_Model(self.controller.get_acc_info()))
+        self.data = self.controller.get_acc_info()
+        self.ui.tableWidget.setRowCount(len(self.data.iloc[0]))
+        self.ui.tableWidget.setColumnCount(1)
+        self.ui.tableWidget.setVerticalHeaderLabels(self.data.columns.values.tolist())
+        self.ui.tableWidget.setHorizontalHeaderLabels(['values'])
+        data = [str(x) for x in list(self.data.iloc[0])]
+        for x in range(len(data)):
+            self.ui.tableWidget.setItem(x, 0, QTableWidgetItem(data[x]))
         self.dialog.show()
     def launch(self):
         self.main_window.show()
         sys.exit(self.app.exec_())
-
-
-class Pandas_Model(QAbstractTableModel):
-
-    def __init__(self, data):
-        QAbstractTableModel.__init__(self)
-        self._data = data
-
-    def rowCount(self, parent=None):
-        return self._data.shape[0]
-
-    def columnCount(self, parent=None):
-        return self._data.shape[1]
-
-    def data(self, index, role=Qt.DisplayRole):
-        if index.isValid():
-            if role == Qt.DisplayRole:
-                return str(self._data.iloc[index.row(), index.column()])
-        return None
-
-    def headerData(self, col, orientation, role):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self._data.columns[col]
-        return None
 
 
 # Launch
