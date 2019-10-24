@@ -31,6 +31,10 @@
     <addaction name="actionLogin"/>
     <addaction name="actionAccInfo"/>
     <addaction name="actionPositions"/>
+    <addaction name="actionView_Closed_Positions"/>
+    <addaction name="actionOpenPosition"/>
+    <addaction name="actionOpenOrder"/>
+    <addaction name="actionViewOrders"/>
    </widget>
    <widget class="QMenu" name="menuAutotrading">
     <property name="title">
@@ -56,7 +60,27 @@
   </action>
   <action name="actionPositions">
    <property name="text">
-    <string>Positions</string>
+    <string>View Open Positions</string>
+   </property>
+  </action>
+  <action name="actionOpenPosition">
+   <property name="text">
+    <string>Open Position</string>
+   </property>
+  </action>
+  <action name="actionOpenOrder">
+   <property name="text">
+    <string>Open Order</string>
+   </property>
+  </action>
+  <action name="actionViewOrders">
+   <property name="text">
+    <string>View Orders</string>
+   </property>
+  </action>
+  <action name="actionView_Closed_Positions">
+   <property name="text">
+    <string>View Closed Positions</string>
    </property>
   </action>
  </widget>

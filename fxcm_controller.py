@@ -15,9 +15,23 @@ class Fxcm():
     def update_token(self, new_token):
         self.token = new_token
     def get_open_positions(self):
-        return self.connection.get_open_positions_summary()
+        return self.connection.get_open_positions(kind='list')
     def get_closed_positions(self):
-        return self.connection.get_closed_positions_summary()
+        return self.connection.get_closed_positions(kind='list')
+    def open_order(self, **position_parameters):
+        self.connection.open_trade(**position_parameters)
+    def close_position(self, **position_parameters):
+        self.connection.close_trade(**position_parameters)
+    def edit_position(self, **position_parameters):
+        self.connection.change_order(**position_parameters)
+    def close_all_positions(self):
+        self.connection.close_all()
+    def close_entry_trade(self, **trade_parameters):
+        self.connection.close_trade(**trade_parameters)
+    def get_open_positions_ids(self):
+        return self.connection.get_open_trade_ids()
+    def get_default_acc_id(self):
+        return self.connection.get_default_account()
 
         
 if __name__ == "__main__":
