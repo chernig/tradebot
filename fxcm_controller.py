@@ -18,7 +18,7 @@ class Fxcm():
         return self.connection.get_open_positions(kind='list')
     def get_closed_positions(self):
         return self.connection.get_closed_positions(kind='list')
-    def open_order(self, **position_parameters):
+    def open_position(self, **position_parameters):
         self.connection.open_trade(**position_parameters)
     def close_position(self, **position_parameters):
         self.connection.close_trade(**position_parameters)
@@ -26,8 +26,12 @@ class Fxcm():
         self.connection.change_order(**position_parameters)
     def close_all_positions(self):
         self.connection.close_all()
-    def close_entry_trade(self, **trade_parameters):
-        self.connection.close_trade(**trade_parameters)
+    def open_order(self, **order_parameters):
+        self.connection.create_entry_order(**order_parameters)
+    def get_orders(self):
+        return self.connection.get_orders(kind='list')
+    def close_order(self, order_id):
+        self.connection.delete_order(order_id)
     def get_open_positions_ids(self):
         return self.connection.get_open_trade_ids()
     def get_default_acc_id(self):

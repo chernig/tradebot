@@ -1,3 +1,6 @@
+"""
+Import main class from all related UI files here
+"""
 from main_window import Ui_Main
 from login_popup import Ui_Login
 from acc_info_popup import Ui_Account
@@ -6,6 +9,7 @@ from view_closed_positions import Ui_ClosedPositions
 from open_position import Ui_OpenPos
 from open_order import Ui_OpenOrd
 from edit_popup import Ui_EditPosition
+from view_orders import Ui_Orders
 from fxcm_controller import Fxcm
 import sys
 import datetime
@@ -15,8 +19,7 @@ from PyQt5.QtWidgets import QApplication, QTableWidgetItem
 from PyQt5.QtCore import QAbstractTableModel, Qt
 """
 TO DO:
-Edit done but for position lol, need for order
-Add orders
+Edit for trade
 DB
 """
 
@@ -39,6 +42,7 @@ class GUI():
         self.ui.actionOpenPosition.triggered.connect(self.open_position)
         self.ui.actionOpenOrder.triggered.connect(self.open_order)
         self.ui.actionView_Closed_Positions.triggered.connect(self.view_closed_positions)
+        self.ui.actionViewOrders.triggered.connect(self.view_orders)
         self.controller = Fxcm()
         self.id = str(self.controller.get_default_acc_id())
     def open_login(self):
@@ -66,9 +70,11 @@ class GUI():
         """
         Second popup window to be used from view_open_position for edit position purposes
         """
+        # Window initialization
         edit_info = {
-            "order_id": 235045369,
-            "amount": 1
+            "order_id": 235045369, # random deaful value, not essential
+            "amount": 1,
+            "rate" : 1,
         }
         self.dialog.dialog = QtWidgets.QDialog()
         self.dialog.ui = Ui_EditPosition()
@@ -84,8 +90,26 @@ class GUI():
                 line_edit.setEnabled(1)
             else:
                 line_edit.setDisabled(1)
-        #edit_info['order_id'] = self.ui.tableWidget.
-        self.dialog.ui.buttonBox.accepted.connect(lambda: print(edit_info))
+        def update_edit_info():
+            """
+            A method to capture the required data from UI and update edit_info
+            """
+
+            #Update the edit_data dictionary
+            edit_info['amount'] = int(self.dialog.ui.lineEdit.text())
+
+            #Update TableWidget at the same time
+            self.ui.tableWidget.setItem(self.ui.tableWidget.currentRow(), 15, QTableWidgetItem(str(edit_info['amount'])))
+
+            edit_info['order_id'] = int(self.ui.tableWidget.item(self.ui.tableWidget.currentRow(), 2).text())
+            if self.dialog.ui.lineEdit_2.isEnabled():
+                edit_info['rate'] = int(self.dialog.ui.lineEdit_2.text())
+            if self.dialog.ui.lineEdit_3.isEnabled():
+                edit_info['range'] = int(self.dialog.ui.lineEdit_3.text())
+            if self.dialog.ui.lineEdit_4.isEnabled():
+                edit_info['trailing_step'] = int(self.dialog.ui.lineEdit_4.text())
+        self.dialog.ui.buttonBox.accepted.connect(update_edit_info)
+        self.dialog.ui.buttonBox.accepted.connect(lambda: self.controller.edit_position(**edit_info))
         self.dialog.ui.checkBox.stateChanged.connect(lambda: change_status(self.dialog.ui.checkBox, self.dialog.ui.lineEdit_2))
         self.dialog.ui.checkBox_2.stateChanged.connect(lambda: change_status(self.dialog.ui.checkBox_2, self.dialog.ui.lineEdit_3))
         self.dialog.ui.checkBox_3.stateChanged.connect(lambda: change_status(self.dialog.ui.checkBox_3, self.dialog.ui.lineEdit_4))
@@ -192,6 +216,14 @@ class GUI():
         self.ui.buttonBox.accepted.connect(lambda: self.controller.open_position(**trading_values))
         self.dialog.show()
     def open_order(self):
+        order_data = {
+            "account_id": self.id,
+            "symbol": "EUR/USD",
+            "amount": 1000,
+            "is_buy": True,
+            "order_type": "Entry",
+            "time_in_force": "GTC"
+        }
         self.dialog = QtWidgets.QDialog()
         self.ui = Ui_OpenOrd()
         self.ui.setupUi(self.dialog)
@@ -205,9 +237,48 @@ class GUI():
                 line_edit.setEnabled(1)
             else:
                 line_edit.setDisabled(1)
+        def update_order_data():
+            """
+            Function to transfer any changes in UI to the order_data dictionary
+            """
+            order_data['amount'] = int(self.ui.lineEdit.text())
+            order_data['rate'] = int(self.ui.lineEdit_2.text())
+            order_data['limit'] = int(self.ui.lineEdit_5.text())
+            if self.ui.lineEdit_3.isEnabled():
+                order_data['stop'] = int(self.ui.lineEdit_3.text())
+            if self.ui.lineEdit_4.isEnabled():
+                order_data['trailing_step'] = int(self.ui.lineEdit_4.text())
+            order_data['is_in_pips'] = bool(self.ui.checkBox_3.isChecked)
         self.ui.checkBox.stateChanged.connect(lambda: change_status(self.ui.checkBox, self.ui.lineEdit_3))
         self.ui.checkBox_2.stateChanged.connect(lambda: change_status(self.ui.checkBox_2, self.ui.lineEdit_4))
-        self.ui.checkBox_3.stateChanged.connect(lambda: change_status(self.ui.checkBox_3, self.ui.lineEdit_5))
+        self.ui.buttonBox.accepted.connect(update_order_data)
+        self.ui.buttonBox.accepted.connect(lambda: self.controller.open_order(**order_data)) 
+        self.dialog.show()
+    def view_orders(self):
+        # Window initialization
+        self.dialog = QtWidgets.QDialog()
+        self.ui = Ui_Orders()
+        self.ui.setupUi(self.dialog)
+        order_id = [0]
+        # Window functionality
+        self.data = self.controller.get_orders()
+        self.ui.tableWidget.setRowCount(len(self.data))
+        print(self.data)
+        for row, position in enumerate(self.data):
+            for column, data in enumerate(position):
+                # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
+                # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
+                self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
+        def update_id():
+            """
+            Small ID catcher from the selected row
+            """
+            order_id[0] = int(self.ui.tableWidget.item(self.ui.tableWidget.currentRow(), 2).text())
+            print(order_id)
+        self.ui.tableWidget.clicked.connect(update_id)
+        self.ui.pushButton.clicked.connect(lambda: self.controller.close_order(order_id[0]))
+        self.ui.pushButton.clicked.connect(lambda: self.ui.tableWidget.removeRow(self.ui.tableWidget.currentRow()))
+        self.ui.pushButton_2.clicked.connect(self.edit_order)
         self.dialog.show()
     def launch(self):
         self.main_window.show()
