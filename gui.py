@@ -125,18 +125,18 @@ class GUI():
             """
 
             #Update the edit_data dictionary
-            edit_info['amount'] = int(self.dialog.ui.lineEdit.text())
+            edit_info['amount'] = float(self.dialog.ui.lineEdit.text())
 
             #Update TableWidget at the same time
             self.ui.tableWidget.setItem(self.ui.tableWidget.currentRow(), 15, QTableWidgetItem(str(edit_info['amount'])))
 
             edit_info['order_id'] = int(self.ui.tableWidget.item(self.ui.tableWidget.currentRow(), 2).text())
             if self.dialog.ui.lineEdit_2.isEnabled():
-                edit_info['rate'] = int(self.dialog.ui.lineEdit_2.text())
+                edit_info['rate'] = float(self.dialog.ui.lineEdit_2.text())
             if self.dialog.ui.lineEdit_3.isEnabled():
-                edit_info['range'] = int(self.dialog.ui.lineEdit_3.text())
+                edit_info['range'] = float(self.dialog.ui.lineEdit_3.text())
             if self.dialog.ui.lineEdit_4.isEnabled():
-                edit_info['trailing_step'] = int(self.dialog.ui.lineEdit_4.text())
+                edit_info['trailing_step'] = float(self.dialog.ui.lineEdit_4.text())
         self.dialog.ui.buttonBox.accepted.connect(update_edit_info)
         self.dialog.ui.buttonBox.accepted.connect(lambda: self.controller.edit_order(**edit_info))
         self.dialog.ui.checkBox.stateChanged.connect(lambda: change_status(self.dialog.ui.checkBox, self.dialog.ui.lineEdit_2))
@@ -242,14 +242,14 @@ class GUI():
             """
             Function to update trading values for future operations
             """
-            trading_values['amount'] = int(self.ui.lineEdit.text())
+            trading_values['amount'] = float(self.ui.lineEdit.text())
             trading_values['symbol'] = str(self.ui.comboBox.currentText())
             if self.ui.lineEdit_2.isEnabled():
-                trading_values['stop'] = int(self.ui.lineEdit_2.text())
+                trading_values['stop'] = float(self.ui.lineEdit_2.text())
             if self.ui.lineEdit_3.isEnabled():
-                trading_values['trailing_step'] = int(self.ui.lineEdit_3.text())
+                trading_values['trailing_step'] = float(self.ui.lineEdit_3.text())
             if self.ui.lineEdit_4.isEnabled():
-                trading_values['limit'] = int(self.ui.lineEdit_4.text())
+                trading_values['limit'] = float(self.ui.lineEdit_4.text())
             trading_values['is_in_pips'] = bool(self.ui.checkBox_4.isChecked)
         def add_position_maker(data):
             """
@@ -298,13 +298,13 @@ class GUI():
             """
             Function to transfer any changes in UI to the order_data dictionary
             """
-            order_data['amount'] = int(self.ui.lineEdit.text())
-            order_data['rate'] = int(self.ui.lineEdit_2.text())
-            order_data['limit'] = int(self.ui.lineEdit_5.text())
+            order_data['amount'] = float(self.ui.lineEdit.text())
+            order_data['rate'] = float(self.ui.lineEdit_2.text())
+            order_data['limit'] = float(self.ui.lineEdit_5.text())
             if self.ui.lineEdit_3.isEnabled():
-                order_data['stop'] = int(self.ui.lineEdit_3.text())
+                order_data['stop'] = float(self.ui.lineEdit_3.text())
             if self.ui.lineEdit_4.isEnabled():
-                order_data['trailing_step'] = int(self.ui.lineEdit_4.text())
+                order_data['trailing_step'] = float(self.ui.lineEdit_4.text())
             order_data['is_in_pips'] = bool(self.ui.checkBox_3.isChecked)
         def add_position_maker(data):
             """
