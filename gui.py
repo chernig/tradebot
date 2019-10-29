@@ -51,6 +51,7 @@ class GUI():
         self.ui.actionOpenOrder.triggered.connect(self.open_order)
         self.ui.actionView_Closed_Positions.triggered.connect(self.view_closed_positions)
         self.ui.actionViewOrders.triggered.connect(self.view_orders)
+        self.ui.menuAutotrading.aboutToShow.connect(self.open_order) # Basically, just replace triggered with aboutToShow
         self.controller = Fxcm()
         self.id = str(self.controller.get_default_acc_id())
         self.db = Db_Controller()
@@ -251,6 +252,8 @@ class GUI():
             if self.ui.lineEdit_4.isEnabled():
                 trading_values['limit'] = float(self.ui.lineEdit_4.text())
             trading_values['is_in_pips'] = bool(self.ui.checkBox_4.isChecked)
+            if self.ui.radioButton.isChecked():
+                trading_values['is_buy'] = True
         def add_position_maker(data):
             """
             Function to add a position maker and transform data 
@@ -277,7 +280,7 @@ class GUI():
             "account_id": self.id,
             "symbol": "EUR/USD",
             "amount": 1000,
-            "is_buy": True,
+            "is_buy": False,
             "order_type": "Entry",
             "time_in_force": "GTC"
         }
@@ -306,6 +309,8 @@ class GUI():
             if self.ui.lineEdit_4.isEnabled():
                 order_data['trailing_step'] = float(self.ui.lineEdit_4.text())
             order_data['is_in_pips'] = bool(self.ui.checkBox_3.isChecked)
+            if self.ui.radioButton.isChecked():
+                order_data['is_buy'] = True
         def add_position_maker(data):
             """
             Function to add a position maker and transform data 
