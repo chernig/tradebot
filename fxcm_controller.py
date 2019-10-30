@@ -73,7 +73,23 @@ class Fxcm():
     def edit_position_stop_limit(self, **position_parameters):
         self.connection.change_trade_stop_limit(**position_parameters)
     def close_all_positions(self):
+        def add_position_maker(data):
+            """
+            Function to add a position maker and transform data 
+            to be suitable for database input
+            Input: Dictionary with data
+            Output: List of dictionary's values + position maker value
+            """
+            data = list(data.values())
+            data.append('maker?')
+            return data
+        self.data = self.get_open_positions()
+        for position in self.data:
+            self.db.delete_from_table('Open_Positions', position['tradeId'])
         self.connection.close_all()
+        self.data = self.get_closed_positions()[-len(self.data):]
+        for position in self.data:
+            self.db.insert_into_table('Closed_Positions', add_position_maker(position))
     def open_order(self, **order_parameters):
         def add_position_maker(data):
             """
