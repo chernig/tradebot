@@ -1,12 +1,13 @@
 import sqlite3
+import os.path
+from os import path
 
 class Db_Controller():
     def __init__(self):
-        self.connection = sqlite3.connect(':memory:')
-        self.cursor = self.connection.cursor()
-        self.create_schema()
-        self.connection.commit()
+        self.connection = None
+        self.cursor = None
     def create_schema(self):
+        
         """
         Create all the required tables and their columns
         Output: created schema in SQLITE database
@@ -17,6 +18,7 @@ class Db_Controller():
         Closed_Positions - list of currently closed positions at FXCM server from this user
         Orders - list of currently open orders at FXCM server from this user
         """
+        self.db_open_connection()
         self.cursor.execute("""CREATE TABLE Users (
             username text PRIMARY KEY not null,
             password text not null
@@ -118,6 +120,17 @@ class Db_Controller():
             range real null,
             position_maker text null
             )""")
+    def db_open_connection(self):
+        if path.exists('data/data.dll'):
+            self.connection = sqlite3.connect('data/data.dll') #Change for folder
+            self.cursor = self.connection.cursor()
+        else:
+            self.connection = sqlite3.connect('data/data.dll') #Change for folder
+            self.cursor = self.connection.cursor()
+            self.create_schema()
+        return self.connection, self.cursor
+    def db_close_connection(self):
+        self.connection.close()
     def insert_into_table(self, table, data):
         """
         Function to input data into a specific table
@@ -126,6 +139,7 @@ class Db_Controller():
         data->list: all the required data (must hold the same number of values as columns), ordered by columns
         Output: Imported data to the table
         """
+        self.db_open_connection()
         self.cursor.execute("PRAGMA table_info({})".format(table))
         number = len(self.cursor.fetchall())
         values = '(' + '?,'*number
@@ -133,7 +147,9 @@ class Db_Controller():
         statement = "INSERT INTO {} VALUES"+values
         self.cursor.execute(statement.format(table), data)
         self.connection.commit()
+        self.db_close_connection()
     def delete_from_table(self, table, pk_value):
+        self.db_open_connection()
         self.cursor.execute("PRAGMA table_info({})".format(table))
         tables = self.cursor.fetchall()
         pk_name = ''
@@ -143,6 +159,7 @@ class Db_Controller():
                 break
         self.cursor.execute("DELETE FROM {} WHERE {}='{}'".format(table, pk_name, pk_value))
         self.connection.commit()
+        self.db_close_connection()
     def update_table(self, table, pk_value, new_values):
         """
         Function to update a specific row in a specific table
@@ -152,6 +169,7 @@ class Db_Controller():
         new_values->list: List of the new values for the select row
         Output: Updated row in a specific table
         """
+        self.db_open_connection()
         self.cursor.execute("PRAGMA table_info({})".format(table))
         columns = [x[1] for x in self.cursor.fetchall()]
         self.cursor.execute("PRAGMA table_info({})".format(table))
@@ -167,13 +185,17 @@ class Db_Controller():
         new_values.append(pk_value)
         self.cursor.execute(statement, new_values)
         self.connection.commit()
+        self.db_close_connection()
     def test_print(self):
+        
         """
         Supportive function to test DB values from GUI
         Output: Prints rows from the desired table
         """
-        self.cursor.execute("SELECT * FROM Open_Positions")
+        self.db_open_connection()
+        self.cursor.execute("SELECT * FROM Orders")
         print(self.cursor.fetchall())
+        self.db_close_connection()
 
 if __name__ == "__main__":
     a = Db_Controller()
@@ -186,6 +208,7 @@ if __name__ == "__main__":
     a.insert_into_table('Open_Positions', test)
     a.insert_into_table('Open_Positions', test2)
     a.update_table('Open_Positions', '31525', test3)
+    a.insert_into_table('Open_Positions', test2)
     #a.update_table('Users', test2)
     a.test_print()
 

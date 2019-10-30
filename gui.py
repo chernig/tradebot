@@ -53,8 +53,7 @@ class GUI():
         self.ui.actionViewOrders.triggered.connect(self.view_orders)
         self.ui.menuAutotrading.aboutToShow.connect(self.open_order) # Basically, just replace triggered with aboutToShow
         self.controller = Fxcm()
-        self.id = str(self.controller.get_default_acc_id())
-        self.db = Db_Controller()
+        #self.db = Db_Controller()
     def open_login(self):
         """
         Method to generate login popup window. The UI template can be taken from login_popup.py
@@ -64,10 +63,18 @@ class GUI():
         self.dialog = QtWidgets.QDialog()
         self.ui = Ui_Login()
         self.ui.setupUi(self.dialog)
-
+        def status_bar_update():
+            self.ui.label_2.setText(str(self.controller.connection_status))
+            QtWidgets.qApp.processEvents()
+                
         # Window functionality
-        self.ui.label_2.setText(str(self.controller.connection_status))
+        self.ui.label_2.setText('False')
         self.ui.lineEdit.setText(self.controller.token)
+        self.ui.pushButton_2.clicked.connect(status_bar_update)
+        self.ui.pushButton_2.clicked.connect(self.controller.connect)
+        self.ui.pushButton_2.clicked.connect(status_bar_update)
+        self.ui.pushButton_3.clicked.connect(self.controller.disconnect)
+        self.ui.pushButton_3.clicked.connect(status_bar_update)
         self.ui.pushButton.clicked.connect(lambda: self.controller.update_token(self.ui.lineEdit.text()))
         self.dialog.show()
     def open_acc_info(self):
@@ -176,8 +183,6 @@ class GUI():
         self.ui.pushButton.clicked.connect(self.controller.close_all_positions)
         self.ui.pushButton.clicked.connect(lambda: self.ui.tableWidget.setRowCount(0))
         self.ui.pushButton_2.clicked.connect(lambda: self.controller.close_position(**position_data))
-        self.ui.pushButton_2.clicked.connect(lambda: self.db.delete_from_table('Open_Positions', position_data['trade_id']))
-        self.ui.pushButton_2.clicked.connect(lambda: self.db.insert_into_table('Closed_Positions', add_position_maker(self.controller.get_closed_positions()[-1])))
         self.ui.pushButton_2.clicked.connect(lambda: self.ui.tableWidget.removeRow(self.ui.tableWidget.currentRow()))
         self.ui.pushButton_3.clicked.connect(self.edit_position_stop_limit)
         self.data = self.controller.get_open_positions()
@@ -215,7 +220,7 @@ class GUI():
         # Window itnitialization
 
         trading_values = {
-            "account_id": self.id,
+            "account_id": str(self.controller.get_default_acc_id()),
             "symbol": "EUR/USD",
             "is_buy": False,
             "amount": 1,
@@ -254,22 +259,12 @@ class GUI():
             trading_values['is_in_pips'] = bool(self.ui.checkBox_4.isChecked)
             if self.ui.radioButton.isChecked():
                 trading_values['is_buy'] = True
-        def add_position_maker(data):
-            """
-            Function to add a position maker and transform data 
-            to be suitable for database input
-            Input: Dictionary with data
-            Output: List of dictionary's values + position maker value
-            """
-            data = list(data.values())
-            data.append('maker?')
-            return data
         self.ui.checkBox.stateChanged.connect(lambda: change_status(self.ui.checkBox, self.ui.lineEdit_2))
         self.ui.checkBox_2.stateChanged.connect(lambda: change_status(self.ui.checkBox_2, self.ui.lineEdit_3))
         self.ui.checkBox_3.stateChanged.connect(lambda: change_status(self.ui.checkBox_3, self.ui.lineEdit_4))
         self.ui.buttonBox.accepted.connect(update_trading_values)
         self.ui.buttonBox.accepted.connect(lambda: self.controller.open_position(**trading_values))
-        self.ui.buttonBox.accepted.connect(lambda: self.db.insert_into_table('Open_Positions', add_position_maker(self.controller.get_open_positions()[-1])))
+        # self.ui.buttonBox.accepted.connect(lambda: self.db.insert_into_table('Open_Positions', add_position_maker(self.controller.get_open_positions()[-1])))
         self.dialog.show()
     def open_order(self):
         
@@ -277,7 +272,7 @@ class GUI():
         
         # Dictionary to hold order info for editing/closing purposes
         order_data = {
-            "account_id": self.id,
+            "account_id": str(self.controller.get_default_acc_id()),
             "symbol": "EUR/USD",
             "amount": 1000,
             "is_buy": False,
@@ -324,9 +319,9 @@ class GUI():
         self.ui.checkBox.stateChanged.connect(lambda: change_status(self.ui.checkBox, self.ui.lineEdit_3))
         self.ui.checkBox_2.stateChanged.connect(lambda: change_status(self.ui.checkBox_2, self.ui.lineEdit_4))
         self.ui.buttonBox.accepted.connect(update_order_data)
-        self.ui.buttonBox.accepted.connect(lambda: self.controller.open_order(**order_data)) 
-        self.ui.buttonBox.accepted.connect(lambda: self.db.insert_into_table('Orders', add_position_maker(self.controller.get_orders()[-1])))
-        self.ui.buttonBox.accepted.connect(self.db.test_print)
+        self.ui.buttonBox.accepted.connect(lambda: print(self.controller.open_order(**order_data))) #Delete print
+        #self.ui.buttonBox.accepted.connect(lambda: self.db.insert_into_table('Orders', add_position_maker(self.controller.get_orders()[-1])))
+        #self.ui.buttonBox.accepted.connect(self.db.test_print)
         self.dialog.show()
     def view_orders(self):
         # Window initialization
