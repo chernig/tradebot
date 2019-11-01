@@ -1,5 +1,6 @@
 from fxcmpy import *
 from db_controller import Db_Controller
+import pandas as pd
 
 
 
@@ -14,16 +15,38 @@ class Fxcm():
         self.token = 'a46718dbcf04edf1b8135816d96d38a7703f2d65' # Default, for now
         self.connection = None
         self.data = None
-        self.connection_status = 'Connecting'
+        self.connection_status = False
         self.db = None
     
     def connect(self):
         self.connection = fxcmpy(access_token=self.token, log_level='error', server='demo')
         self.connection_status = self.connection.is_connected()
         self.db = Db_Controller()
+        self.enable_stream('OpenPosition')
     def disconnect(self):
+        self.disable_stream('OpenPosition')
         self.connection = None
         self.connection_status = False
+    def enable_stream(self, model):
+        """
+        Enables a specific model stream according to the FXCM documentation
+
+        Inputs: model->str Name of the model from FXCM model list (OpenPosition, ClosedPosition, Account, Order)
+        Output: Enables streaming data and updates corresponding db rows
+        """
+        def process_data(data):
+            # Work for open
+            if len(data) == 5:
+                columns = [x for x in data.keys()][:-1]
+                values = [x for x in data.values()][:-1]
+                pk_key = list(data.values())[-1]
+                self.db.update_from_stream(model, columns, values, pk_key)
+                # self.db.print_table('OpenPosition') Enable to track real-time progress in console
+        self.connection.subscribe_data_model(model, (process_data,))
+    def disable_stream(self, model):
+        self.connection.unsubscribe_data_model(model)
+    def get_stream_data(self, model):
+        return self.connection.get_model([model])
     def get_acc_info(self):
         return self.connection.get_accounts(kind = 'list')
     def update_token(self, new_token):
@@ -35,6 +58,12 @@ class Fxcm():
     def get_closed_positions(self):
         return self.connection.get_closed_positions(kind='list')
     def open_position(self, **position_parameters):
+        """
+        Function to add a position to FXCM server
+        
+        Inputs: **position_parameters->dictionary List of different variables to open a position
+        Output: Opened position and created db row
+        """
         def add_position_maker(data):
             """
             Function to add a position maker and transform data 
@@ -48,11 +77,16 @@ class Fxcm():
         self.connection.open_trade(**position_parameters)
         self.data = self.get_open_positions()[-1]
         trade_id = self.data['tradeId']
-        self.db.insert_into_table('Open_Positions', add_position_maker(self.data))
+        self.db.insert_into_table('OpenPosition', add_position_maker(self.data))
         self.data = None
-        print(trade_id)
         return trade_id
     def close_position(self, **position_parameters):
+        """
+        Function to close a position from FXCM server
+        
+        Inputs: **position_parameters->dictionary List of different variables to close a position
+        Output: Closed FXCM position, deleted OpenPosition row and created ClosedPosition row in db
+        """
         def add_position_maker(data):
             """
             Function to add a position maker and transform data 
@@ -64,8 +98,8 @@ class Fxcm():
             data.append('maker?')
             return data
         self.connection.close_trade(**position_parameters)
-        self.db.delete_from_table('Open_Positions', position_parameters['trade_id'])
-        self.db.insert_into_table('Closed_Positions', add_position_maker(self.get_closed_positions()[-1]))
+        self.db.delete_from_table('OpenPosition', position_parameters['trade_id'])
+        self.db.insert_into_table('ClosedPosition', add_position_maker(self.get_closed_positions()[-1]))
     def edit_order(self, **order_parameters):
         self.connection.change_order(**order_parameters)
     def edit_order_stop_limit(self, **order_parameters):
@@ -85,12 +119,18 @@ class Fxcm():
             return data
         self.data = self.get_open_positions()
         for position in self.data:
-            self.db.delete_from_table('Open_Positions', position['tradeId'])
+            self.db.delete_from_table('OpenPosition', position['tradeId'])
         self.connection.close_all()
         self.data = self.get_closed_positions()[-len(self.data):]
         for position in self.data:
-            self.db.insert_into_table('Closed_Positions', add_position_maker(position))
+            self.db.insert_into_table('ClosedPosition', add_position_maker(position))
     def open_order(self, **order_parameters):
+        """
+        Function to open an order in FXCM 
+        
+        Inputs: **position_parameters->dictionary List of different variables to open an order
+        Output: Opened FXCM order and created Order row in db
+        """
         def add_position_maker(data):
             """
             Function to add a position maker and transform data 
@@ -122,5 +162,5 @@ if __name__ == "__main__":
     import pandas
     check = Fxcm()
     check.connect()
-    data = check.get_acc_info()
-    print(list(data.iloc[0]))
+    check.connection.subscribe_market_data('EUR/USD')
+    print(check.connection.get_prices('EUR/USD'))

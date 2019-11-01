@@ -16,15 +16,16 @@ from fxcm_controller import Fxcm
 from db_controller import Db_Controller
 import sys
 import datetime
-import pandas
+import pandas as pd
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QTableWidgetItem
+from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QMessageBox
 from PyQt5.QtCore import QAbstractTableModel, Qt
 """
+Done:
+Open positions streaming
+DB changes
 TO DO:
-Add db changes for edit
-bugfixes (datatypes, default variables)
-complete rest of db based on auto trade
+Orders stream, closed checks
 """
 
 
@@ -43,34 +44,46 @@ class GUI():
         self.ui = Ui_Main()
 
         # Initial functionality
+        self.controller = Fxcm()
         self.ui.setupUi(self.main_window)
         self.ui.actionLogin.triggered.connect(self.open_login)
         self.ui.actionAccInfo.triggered.connect(self.open_acc_info)
         self.ui.actionPositions.triggered.connect(self.view_open_positions)
+        #self.ui.actionPositions.triggered.connect(lambda: self.controller.db.print_table('OpenPosition'))
         self.ui.actionOpenPosition.triggered.connect(self.open_position)
         self.ui.actionOpenOrder.triggered.connect(self.open_order)
         self.ui.actionView_Closed_Positions.triggered.connect(self.view_closed_positions)
         self.ui.actionViewOrders.triggered.connect(self.view_orders)
-        self.ui.menuAutotrading.aboutToShow.connect(self.open_order) # Basically, just replace triggered with aboutToShow
-        self.controller = Fxcm()
-        #self.db = Db_Controller()
+        #self.ui.menuAutotrading.aboutToShow.connect(self.open_order) # Basically, just replace triggered with aboutToShow
+        self.ui.actionConnect.triggered.connect(lambda: self.controller.enable_stream('OpenPosition'))
+        self.ui.actionGet_Data.triggered.connect(lambda: print(self.controller.get_stream_data('OpenPosition')))
+        #self.ui.actionDisconnect.triggered.connect(lambda: self.controller.disable_stream('OpenPosition'))
+        self.ui.actionDisconnect.triggered.connect(self.open_warning)
+    def open_warning(self):
+        self.dialog = QMessageBox()
+        self.dialog.setWindowTitle('Not connected to FXCM')
+        self.dialog.setText('Please connect to FXCM server to proceed')
+        self.dialog.setIcon(QMessageBox.Information)
+
+        self.dialog.show()
     def open_login(self):
         """
         Method to generate login popup window. The UI template can be taken from login_popup.py
         """
-
         # Window initialization
         self.dialog = QtWidgets.QDialog()
         self.ui = Ui_Login()
         self.ui.setupUi(self.dialog)
-        def status_bar_update():
+        def status_bar_update(): 
             self.ui.label_2.setText(str(self.controller.connection_status))
             QtWidgets.qApp.processEvents()
-                
+        def status_bar_connecting():
+            self.ui.label_2.setText('Connecting')
+            QtWidgets.qApp.processEvents()   
         # Window functionality
-        self.ui.label_2.setText('False')
+        self.ui.label_2.setText(str(self.controller.connection_status))
         self.ui.lineEdit.setText(self.controller.token)
-        self.ui.pushButton_2.clicked.connect(status_bar_update)
+        self.ui.pushButton_2.clicked.connect(status_bar_connecting)
         self.ui.pushButton_2.clicked.connect(self.controller.connect)
         self.ui.pushButton_2.clicked.connect(status_bar_update)
         self.ui.pushButton_3.clicked.connect(self.controller.disconnect)
@@ -81,28 +94,21 @@ class GUI():
         """
         Method to generate account info popup. The UI template can be taken from acc_info_popup.py
         """
-        self.dialog = QtWidgets.QDialog()
-        self.ui = Ui_Account()
-        self.ui.setupUi(self.dialog)
-        self.data = self.controller.get_acc_info()
-        print(len(self.data[0]))
-        """
-        self.ui.tableWidget.setRowCount(len(self.data.iloc[0]))
-        self.ui.tableWidget.setColumnCount(1)
-        self.ui.tableWidget.setVerticalHeaderLabels(self.data.columns.values.tolist())
-        self.ui.tableWidget.setHorizontalHeaderLabels(['values'])
-        data = [str(x) for x in list(self.data.iloc[0])]
-        for x in range(len(data)):
-            self.ui.tableWidget.setItem(x, 0, QTableWidgetItem(data[x]))
-        """
-        self.ui.tableWidget.setRowCount(len(self.data)) # Creating rows based on data
-        # Populating the QTableWidget
-        for row, position in enumerate(self.data):
-            for column, data in enumerate(position):
-                # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
-                # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
-                self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
-        self.dialog.show()
+        if self.controller.connection_status == False:
+            self.open_warning()
+        else:
+            self.dialog = QtWidgets.QDialog()
+            self.ui = Ui_Account()
+            self.ui.setupUi(self.dialog)
+            self.data = self.controller.get_acc_info()
+            self.ui.tableWidget.setRowCount(len(self.data)) # Creating rows based on data
+            # Populating the QTableWidget
+            for row, position in enumerate(self.data):
+                for column, data in enumerate(position):
+                    # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
+                    # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
+                    self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
+            self.dialog.show()
     def edit_order(self):
         """
         Second popup window to be used from view_open_position for edit position purposes
@@ -152,204 +158,227 @@ class GUI():
         self.dialog.ui.checkBox_3.stateChanged.connect(lambda: change_status(self.dialog.ui.checkBox_3, self.dialog.ui.lineEdit_4))
         self.dialog.dialog.show()
     def view_open_positions(self):
-        # Initial table to store the requred for closing position
-        position_data = {
-            'trade_id': '',
-            'amount': ''
-        }
-        # Window initialization
-        self.dialog = QtWidgets.QDialog()
-        self.ui = Ui_Positions()
-        self.ui.setupUi(self.dialog)
-
-        # Window functionality
-        def position_info_review():
-            """
-            Small 'capture' controller. Sends the required data from selected row to the position_data
-            """
-            # 2 and 15 are corresponding to 'trade_id' and 'amount' columns in QTableWidget
-            position_data['trade_id'] = self.ui.tableWidget.item(self.ui.tableWidget.currentRow(), 2).text()
-            position_data['amount'] = self.ui.tableWidget.item(self.ui.tableWidget.currentRow(), 15).text()
-        def add_position_maker(data):
-            """
-            Function to add a position maker and transform data 
-            to be suitable for database input
-            Input: Dictionary with data
-            Output: List of dictionary's values + position maker value
-            """
-            data = list(data.values())
-            data.append('maker?')
-            return data
-        self.ui.pushButton.clicked.connect(self.controller.close_all_positions)
-        self.ui.pushButton.clicked.connect(lambda: self.ui.tableWidget.setRowCount(0))
-        self.ui.pushButton_2.clicked.connect(lambda: self.controller.close_position(**position_data))
-        self.ui.pushButton_2.clicked.connect(lambda: self.ui.tableWidget.removeRow(self.ui.tableWidget.currentRow()))
-        self.ui.pushButton_3.clicked.connect(self.edit_position_stop_limit)
-        self.data = self.controller.get_open_positions()
-        self.ui.tableWidget.setRowCount(len(self.data)) # Creating rows based on data
-        self.ui.tableWidget.clicked.connect(position_info_review)
-        
-        # Populating the QTableWidget
-        for row, position in enumerate(self.data):
-            for column, data in enumerate(position):
-                # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
-                # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
-                self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
-        
-        # Show the window
-        self.dialog.show()
-    def view_closed_positions(self):
-        # Window initialization
-        self.dialog = QtWidgets.QDialog()
-        self.ui = Ui_ClosedPositions()
-        self.ui.setupUi(self.dialog)
-
-        # Window functionality
-        self.data = self.controller.get_closed_positions()
-        self.ui.tableWidget.setRowCount(len(self.data)) # Creating rows based on data
-        print(self.data)
-        # Populating the QTableWidget
-        for row, position in enumerate(self.data):
-            for column, data in enumerate(position):
-                # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
-                # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
-                self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
-        self.dialog.show()
-    def open_position(self):
-        
-        # Window itnitialization
-
-        trading_values = {
-            "account_id": str(self.controller.get_default_acc_id()),
-            "symbol": "EUR/USD",
-            "is_buy": False,
-            "amount": 1,
-            "order_type": "AtMarket",
-            "time_in_force": "GTC",
-            "is_in_pips": ''
+        if self.controller.connection_status == False:
+            self.open_warning()
+        else:
+            # Initial table to store the requred for closing position
+            position_data = {
+                'trade_id': '',
+                'amount': ''
             }
-        self.dialog = QtWidgets.QDialog()
-        self.ui = Ui_OpenPos()
-        self.ui.setupUi(self.dialog)
+            # Window initialization
+            self.dialog = QtWidgets.QDialog()
+            self.ui = Ui_Positions()
+            self.ui.setupUi(self.dialog)
 
-        # Window functionality
+            # Window functionality
+            def position_info_review():
+                """
+                Small 'capture' controller. Sends the required data from selected row to the position_data
+                """
+                # 2 and 15 are corresponding to 'trade_id' and 'amount' columns in QTableWidget
+                position_data['trade_id'] = self.ui.tableWidget.item(self.ui.tableWidget.currentRow(), 2).text()
+                position_data['amount'] = self.ui.tableWidget.item(self.ui.tableWidget.currentRow(), 15).text()
+            def add_position_maker(data):
+                """
+                Function to add a position maker and transform data 
+                to be suitable for database input
+                Input: Dictionary with data
+                Output: List of dictionary's values + position maker value
+                """
+                data = list(data.values())
+                data.append('maker?')
+                return data
+            self.ui.pushButton.clicked.connect(self.controller.close_all_positions)
+            self.ui.pushButton.clicked.connect(lambda: self.ui.tableWidget.setRowCount(0))
+            self.ui.pushButton_2.clicked.connect(lambda: self.controller.close_position(**position_data))
+            self.ui.pushButton_2.clicked.connect(lambda: self.ui.tableWidget.removeRow(self.ui.tableWidget.currentRow()))
+            self.ui.pushButton_3.clicked.connect(self.edit_position_stop_limit)
+            """
+            # Work for online connection
+            self.data = self.controller.get_open_positions()
+            self.ui.tableWidget.setRowCount(len(self.data)) # Creating rows based on data
+            self.ui.tableWidget.clicked.connect(position_info_review)
+            
+            # Populating the QTableWidget
+            for row, position in enumerate(self.data):
+                for column, data in enumerate(position):
+                    # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
+                    # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
+                    self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
+            """
+            self.data = self.controller.db.print_table('OpenPosition')
+            self.ui.tableWidget.setRowCount(len(self.data))
+            self.ui.tableWidget.clicked.connect(position_info_review)
+            for row, position in enumerate(self.data):
+                for column, data in enumerate(position):
+                    # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
+                    # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
+                    self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(data)))
+            # Show the window
+            self.dialog.show()
+    def view_closed_positions(self):
+        if self.controller.connection_status == False:
+            self.open_warning()
+        else:
+            # Window initialization
+            self.dialog = QtWidgets.QDialog()
+            self.ui = Ui_ClosedPositions()
+            self.ui.setupUi(self.dialog)
 
-        def change_status(checkbox, line_edit):
-            """
-            Small checkbox controller (toggle on/of corresponing line based on status)
-            input: checkbox object, corresponding line_edit
-            output: toggle on/off line edit
-            """
-            if checkbox.isChecked():
-                line_edit.setEnabled(1)
-            else:
-                line_edit.setDisabled(1)
-        def update_trading_values():
-            """
-            Function to update trading values for future operations
-            """
-            trading_values['amount'] = float(self.ui.lineEdit.text())
-            trading_values['symbol'] = str(self.ui.comboBox.currentText())
-            if self.ui.lineEdit_2.isEnabled():
-                trading_values['stop'] = float(self.ui.lineEdit_2.text())
-            if self.ui.lineEdit_3.isEnabled():
-                trading_values['trailing_step'] = float(self.ui.lineEdit_3.text())
-            if self.ui.lineEdit_4.isEnabled():
-                trading_values['limit'] = float(self.ui.lineEdit_4.text())
-            trading_values['is_in_pips'] = bool(self.ui.checkBox_4.isChecked)
-            if self.ui.radioButton.isChecked():
-                trading_values['is_buy'] = True
-        self.ui.checkBox.stateChanged.connect(lambda: change_status(self.ui.checkBox, self.ui.lineEdit_2))
-        self.ui.checkBox_2.stateChanged.connect(lambda: change_status(self.ui.checkBox_2, self.ui.lineEdit_3))
-        self.ui.checkBox_3.stateChanged.connect(lambda: change_status(self.ui.checkBox_3, self.ui.lineEdit_4))
-        self.ui.buttonBox.accepted.connect(update_trading_values)
-        self.ui.buttonBox.accepted.connect(lambda: self.controller.open_position(**trading_values))
-        # self.ui.buttonBox.accepted.connect(lambda: self.db.insert_into_table('Open_Positions', add_position_maker(self.controller.get_open_positions()[-1])))
-        self.dialog.show()
+            # Window functionality
+            self.data = self.controller.get_closed_positions()
+            self.ui.tableWidget.setRowCount(len(self.data)) # Creating rows based on data
+            # Populating the QTableWidget
+            for row, position in enumerate(self.data):
+                for column, data in enumerate(position):
+                    # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
+                    # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
+                    self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
+            self.dialog.show()
+    def open_position(self):
+        if self.controller.connection_status == False:
+            self.open_warning()
+        else:
+            # Window itnitialization
+
+            trading_values = {
+                "account_id": str(self.controller.get_default_acc_id()),
+                "symbol": "EUR/USD",
+                "is_buy": False,
+                "amount": 1,
+                "order_type": "AtMarket",
+                "time_in_force": "GTC",
+                "is_in_pips": ''
+                }
+            self.dialog = QtWidgets.QDialog()
+            self.ui = Ui_OpenPos()
+            self.ui.setupUi(self.dialog)
+
+            # Window functionality
+
+            def change_status(checkbox, line_edit):
+                """
+                Small checkbox controller (toggle on/of corresponing line based on status)
+                input: checkbox object, corresponding line_edit
+                output: toggle on/off line edit
+                """
+                if checkbox.isChecked():
+                    line_edit.setEnabled(1)
+                else:
+                    line_edit.setDisabled(1)
+            def update_trading_values():
+                """
+                Function to update trading values for future operations
+                """
+                trading_values['amount'] = float(self.ui.lineEdit.text())
+                trading_values['symbol'] = str(self.ui.comboBox.currentText())
+                if self.ui.lineEdit_2.isEnabled():
+                    trading_values['stop'] = float(self.ui.lineEdit_2.text())
+                if self.ui.lineEdit_3.isEnabled():
+                    trading_values['trailing_step'] = float(self.ui.lineEdit_3.text())
+                if self.ui.lineEdit_4.isEnabled():
+                    trading_values['limit'] = float(self.ui.lineEdit_4.text())
+                trading_values['is_in_pips'] = bool(self.ui.checkBox_4.isChecked)
+                if self.ui.radioButton.isChecked():
+                    trading_values['is_buy'] = True
+            self.ui.checkBox.stateChanged.connect(lambda: change_status(self.ui.checkBox, self.ui.lineEdit_2))
+            self.ui.checkBox_2.stateChanged.connect(lambda: change_status(self.ui.checkBox_2, self.ui.lineEdit_3))
+            self.ui.checkBox_3.stateChanged.connect(lambda: change_status(self.ui.checkBox_3, self.ui.lineEdit_4))
+            self.ui.buttonBox.accepted.connect(update_trading_values)
+            self.ui.buttonBox.accepted.connect(lambda: self.controller.open_position(**trading_values))
+            # self.ui.buttonBox.accepted.connect(lambda: self.db.insert_into_table('Open_Positions', add_position_maker(self.controller.get_open_positions()[-1])))
+            self.dialog.show()
     def open_order(self):
-        
-        # Window initialization
-        
-        # Dictionary to hold order info for editing/closing purposes
-        order_data = {
-            "account_id": str(self.controller.get_default_acc_id()),
-            "symbol": "EUR/USD",
-            "amount": 1000,
-            "is_buy": False,
-            "order_type": "Entry",
-            "time_in_force": "GTC"
-        }
-        self.dialog = QtWidgets.QDialog()
-        self.ui = Ui_OpenOrd()
-        self.ui.setupUi(self.dialog)
-        def change_status(checkbox, line_edit):
-            """
-            Small checkbox controller (toggle on/of corresponing line based on status)
-            input: checkbox object, corresponding line_edit
-            output: toggle on/off line edit
-            """
-            if checkbox.isChecked():
-                line_edit.setEnabled(1)
-            else:
-                line_edit.setDisabled(1)
-        def update_order_data():
-            """
-            Function to transfer any changes in UI to the order_data dictionary
-            """
-            order_data['amount'] = float(self.ui.lineEdit.text())
-            order_data['rate'] = float(self.ui.lineEdit_2.text())
-            order_data['limit'] = float(self.ui.lineEdit_5.text())
-            if self.ui.lineEdit_3.isEnabled():
-                order_data['stop'] = float(self.ui.lineEdit_3.text())
-            if self.ui.lineEdit_4.isEnabled():
-                order_data['trailing_step'] = float(self.ui.lineEdit_4.text())
-            order_data['is_in_pips'] = bool(self.ui.checkBox_3.isChecked)
-            if self.ui.radioButton.isChecked():
-                order_data['is_buy'] = True
-        def add_position_maker(data):
-            """
-            Function to add a position maker and transform data 
-            to be suitable for database input
-            Input: Dictionary with data
-            Output: List of dictionary's values + position maker value
-            """
-            data = list(data.values())
-            data.append('maker?')
-            return data
-        self.ui.checkBox.stateChanged.connect(lambda: change_status(self.ui.checkBox, self.ui.lineEdit_3))
-        self.ui.checkBox_2.stateChanged.connect(lambda: change_status(self.ui.checkBox_2, self.ui.lineEdit_4))
-        self.ui.buttonBox.accepted.connect(update_order_data)
-        self.ui.buttonBox.accepted.connect(lambda: print(self.controller.open_order(**order_data))) #Delete print
-        #self.ui.buttonBox.accepted.connect(lambda: self.db.insert_into_table('Orders', add_position_maker(self.controller.get_orders()[-1])))
-        #self.ui.buttonBox.accepted.connect(self.db.test_print)
-        self.dialog.show()
+        if self.controller.connection_status == False:
+            self.open_warning()
+        else:
+
+            # Window initialization
+            
+            # Dictionary to hold order info for editing/closing purposes
+            order_data = {
+                "account_id": str(self.controller.get_default_acc_id()),
+                "symbol": "EUR/USD",
+                "amount": 1000,
+                "is_buy": False,
+                "order_type": "Entry",
+                "time_in_force": "GTC"
+            }
+            self.dialog = QtWidgets.QDialog()
+            self.ui = Ui_OpenOrd()
+            self.ui.setupUi(self.dialog)
+            def change_status(checkbox, line_edit):
+                """
+                Small checkbox controller (toggle on/of corresponing line based on status)
+                input: checkbox object, corresponding line_edit
+                output: toggle on/off line edit
+                """
+                if checkbox.isChecked():
+                    line_edit.setEnabled(1)
+                else:
+                    line_edit.setDisabled(1)
+            def update_order_data():
+                """
+                Function to transfer any changes in UI to the order_data dictionary
+                """
+                order_data['amount'] = float(self.ui.lineEdit.text())
+                order_data['rate'] = float(self.ui.lineEdit_2.text())
+                order_data['limit'] = float(self.ui.lineEdit_5.text())
+                if self.ui.lineEdit_3.isEnabled():
+                    order_data['stop'] = float(self.ui.lineEdit_3.text())
+                if self.ui.lineEdit_4.isEnabled():
+                    order_data['trailing_step'] = float(self.ui.lineEdit_4.text())
+                order_data['is_in_pips'] = bool(self.ui.checkBox_3.isChecked)
+                if self.ui.radioButton.isChecked():
+                    order_data['is_buy'] = True
+            def add_position_maker(data):
+                """
+                Function to add a position maker and transform data 
+                to be suitable for database input
+                Input: Dictionary with data
+                Output: List of dictionary's values + position maker value
+                """
+                data = list(data.values())
+                data.append('maker?')
+                return data
+            self.ui.checkBox.stateChanged.connect(lambda: change_status(self.ui.checkBox, self.ui.lineEdit_3))
+            self.ui.checkBox_2.stateChanged.connect(lambda: change_status(self.ui.checkBox_2, self.ui.lineEdit_4))
+            self.ui.buttonBox.accepted.connect(update_order_data)
+            self.ui.buttonBox.accepted.connect(lambda: print(self.controller.open_order(**order_data))) #Delete print
+            #self.ui.buttonBox.accepted.connect(lambda: self.db.insert_into_table('Orders', add_position_maker(self.controller.get_orders()[-1])))
+            #self.ui.buttonBox.accepted.connect(self.db.test_print)
+            self.dialog.show()
     def view_orders(self):
-        # Window initialization
-        self.dialog = QtWidgets.QDialog()
-        self.ui = Ui_Orders()
-        self.ui.setupUi(self.dialog)
-        order_id = [0]
-        # Window functionality
-        self.data = self.controller.get_orders()
-        self.ui.tableWidget.setRowCount(len(self.data))
-        print(self.data)
-        for row, position in enumerate(self.data):
-            for column, data in enumerate(position):
-                # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
-                # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
-                self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
-        def update_id():
-            """
-            Small ID catcher from the selected row
-            """
-            order_id[0] = int(self.ui.tableWidget.item(self.ui.tableWidget.currentRow(), 2).text())
-            print(order_id)
-        self.ui.tableWidget.clicked.connect(update_id)
-        self.ui.pushButton.clicked.connect(lambda: self.controller.close_order(order_id[0]))
-        self.ui.pushButton.clicked.connect(lambda: self.ui.tableWidget.removeRow(self.ui.tableWidget.currentRow()))
-        self.ui.pushButton_2.clicked.connect(self.edit_order)
-        self.ui.pushButton_3.clicked.connect(self.edit_order_stop_limit)
-        self.dialog.show()
+        if self.controller.connection_status == False:
+            self.open_warning()
+        else:
+            # Window initialization
+            self.dialog = QtWidgets.QDialog()
+            self.ui = Ui_Orders()
+            self.ui.setupUi(self.dialog)
+            order_id = [0]
+            # Window functionality
+            self.data = self.controller.get_orders()
+            self.ui.tableWidget.setRowCount(len(self.data))
+            print(self.data)
+            for row, position in enumerate(self.data):
+                for column, data in enumerate(position):
+                    # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
+                    # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
+                    self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
+            def update_id():
+                """
+                Small ID catcher from the selected row
+                """
+                order_id[0] = int(self.ui.tableWidget.item(self.ui.tableWidget.currentRow(), 2).text())
+                print(order_id)
+            self.ui.tableWidget.clicked.connect(update_id)
+            self.ui.pushButton.clicked.connect(lambda: self.controller.close_order(order_id[0]))
+            self.ui.pushButton.clicked.connect(lambda: self.ui.tableWidget.removeRow(self.ui.tableWidget.currentRow()))
+            self.ui.pushButton_2.clicked.connect(self.edit_order)
+            self.ui.pushButton_3.clicked.connect(self.edit_order_stop_limit)
+            self.dialog.show()
     def edit_order_stop_limit(self):
         edit_order = {
             "order_id": 72513348,

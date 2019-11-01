@@ -41,8 +41,17 @@
      <string>Autotrading</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuTest_Streaming">
+    <property name="title">
+     <string>Test Streaming</string>
+    </property>
+    <addaction name="actionConnect"/>
+    <addaction name="actionGet_Data"/>
+    <addaction name="actionDisconnect"/>
+   </widget>
    <addaction name="menuTrading"/>
    <addaction name="menuAutotrading"/>
+   <addaction name="menuTest_Streaming"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionLogin">
@@ -81,6 +90,21 @@
   <action name="actionView_Closed_Positions">
    <property name="text">
     <string>View Closed Positions</string>
+   </property>
+  </action>
+  <action name="actionConnect">
+   <property name="text">
+    <string>Connect</string>
+   </property>
+  </action>
+  <action name="actionGet_Data">
+   <property name="text">
+    <string>Get Data</string>
+   </property>
+  </action>
+  <action name="actionDisconnect">
+   <property name="text">
+    <string>Disconnect</string>
    </property>
   </action>
  </widget>

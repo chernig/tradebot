@@ -23,7 +23,7 @@ class Db_Controller():
             username text PRIMARY KEY not null,
             password text not null
             )""")
-        self.cursor.execute("""CREATE TABLE Fxcm_Info(
+        self.cursor.execute("""CREATE TABLE Account(
             accountId int PRIMARY KEY not null,
             accountName text null,
             balance real null,
@@ -41,7 +41,7 @@ class Db_Controller():
             usdMr real null,
             usdMr3 real null
             )""")
-        self.cursor.execute("""CREATE TABLE Open_Positions(
+        self.cursor.execute("""CREATE TABLE OpenPosition(
             t real null,
             ratePrecision real null,
             tradeId text not null PRIMARY KEY,
@@ -66,7 +66,7 @@ class Db_Controller():
             lim real null,
             positionMaker text null
             )""")
-        self.cursor.execute("""CREATE TABLE Closed_Positions(
+        self.cursor.execute("""CREATE TABLE ClosedPosition(
             t real null,
             ratePrecision real null,
             tradeId text not null PRIMARY KEY,
@@ -144,7 +144,7 @@ class Db_Controller():
         number = len(self.cursor.fetchall())
         values = '(' + '?,'*number
         values = values[:-1]+')'
-        statement = "INSERT INTO {} VALUES"+values
+        statement = "INSERT or IGNORE INTO {} VALUES"+values
         self.cursor.execute(statement.format(table), data)
         self.connection.commit()
         self.db_close_connection()
@@ -186,16 +186,43 @@ class Db_Controller():
         self.cursor.execute(statement, new_values)
         self.connection.commit()
         self.db_close_connection()
-    def test_print(self):
+    def print_table(self, table):
         
         """
         Supportive function to test DB values from GUI
+        Input: table->str Name of the table
         Output: Prints rows from the desired table
         """
         self.db_open_connection()
-        self.cursor.execute("SELECT * FROM Orders")
-        print(self.cursor.fetchall())
+        self.cursor.execute("SELECT * FROM {}".format(table))
+        data = self.cursor.fetchall()
+        print(data)
         self.db_close_connection()
+        return data
+    def update_from_stream(self, table, columns, values, pk_value):
+        """
+        Function to update a row based on update from streaming data
+        Inputs:
+        table->str: Name of the table
+        columns->list: List of the table's columns to be updated
+        values->int/float/str: Corresponding column value, must be in order with columns
+        pk_value->int/float/str: Primary key value for update statement
+        """
+        self.db_open_connection()
+        self.cursor.execute("PRAGMA table_info({})".format(table))
+        tables = self.cursor.fetchall()
+        pk_name = ''
+        for x in tables:
+            if x[3]==1:
+                pk_name = x[1]
+                break
+        statement = 'UPDATE {} SET '.format(table)
+        next_statement = ', '.join([a+'='+'?' for a in columns])
+        statement+= next_statement + ' WHERE '+pk_name+'= {}'.format(pk_value)
+        self.cursor.execute(statement, values)
+        self.connection.commit()
+        self.db_close_connection()
+
 
 if __name__ == "__main__":
     a = Db_Controller()
@@ -205,10 +232,13 @@ if __name__ == "__main__":
     test2 = [x for x in test2.values()]
     test3 = {'t': 1, 'ratePrecision': 8, 'tradeId': '3112512525', 'accountName': '034734765', 'accountId': '65', 'roll': 122, 'com': 0, 'open': 1.10784, 'valueDate': '', 'grossPL': -0.54242, 'close': 1.10821, 'visiblePL': -3.7, 'isDisabled': False, 'currency': 'EUR/USD', 'isBuy': False, 'amountK': 1, 'currencyPoint': 0.1466, 'time': '10272019090547', 'usedMargin': 4.5, 'stop': 0, 'stopMove': 0, 'limit': 0, 'maker':'mamka'}
     test3 = [x for x in test3.values()]
-    a.insert_into_table('Open_Positions', test)
-    a.insert_into_table('Open_Positions', test2)
-    a.update_table('Open_Positions', '31525', test3)
-    a.insert_into_table('Open_Positions', test2)
+    a.insert_into_table('OpenPosition', test)
+    a.insert_into_table('OpenPosition', test2)
+    a.update_table('OpenPosition', '31525', test3)
+    a.insert_into_table('OpenPosition', test2)
+    columns = ['roll', 'com', 'open']
+    values = [2, 5, 7]
+    a.update_from_stream('OpenPosition', columns, values, '31525')
     #a.update_table('Users', test2)
-    a.test_print()
+    a.print_table('OpenPosition')
 
