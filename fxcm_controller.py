@@ -41,8 +41,12 @@ class Fxcm():
                 values = [x for x in data.values()][:-1]
                 pk_key = list(data.values())[-1]
                 self.db.update_from_stream(model, columns, values, pk_key)
-                # self.db.print_table('OpenPosition') Enable to track real-time progress in console
+                #self.db.print_table('OpenPosition') #Enable to track real-time progress in console
         self.connection.subscribe_data_model(model, (process_data,))
+    def enable_test_stream(self, model):
+        def print_data(data):
+            print(data)
+        self.connection.subscribe_data_model(model, (print_data,))
     def disable_stream(self, model):
         self.connection.unsubscribe_data_model(model)
     def get_stream_data(self, model):

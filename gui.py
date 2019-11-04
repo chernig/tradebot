@@ -21,11 +21,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QTableWidgetItem, QMessageBox
 from PyQt5.QtCore import QAbstractTableModel, Qt
 """
-Done:
-Open positions streaming
-DB changes
-TO DO:
-Orders stream, closed checks
+Ask: Can order be closed at any time?
+What is hold time for closed positions at the FXCM server?
+What the hell with this account model streaming?
 """
 
 
@@ -55,10 +53,9 @@ class GUI():
         self.ui.actionView_Closed_Positions.triggered.connect(self.view_closed_positions)
         self.ui.actionViewOrders.triggered.connect(self.view_orders)
         #self.ui.menuAutotrading.aboutToShow.connect(self.open_order) # Basically, just replace triggered with aboutToShow
-        self.ui.actionConnect.triggered.connect(lambda: self.controller.enable_stream('OpenPosition'))
-        self.ui.actionGet_Data.triggered.connect(lambda: print(self.controller.get_stream_data('OpenPosition')))
-        #self.ui.actionDisconnect.triggered.connect(lambda: self.controller.disable_stream('OpenPosition'))
-        self.ui.actionDisconnect.triggered.connect(self.open_warning)
+        self.ui.actionConnect.triggered.connect(lambda: self.controller.enable_test_stream('ClosedPosition'))
+        self.ui.actionGet_Data.triggered.connect(lambda: print(self.controller.get_stream_data('ClosedPosition')))
+        self.ui.actionDisconnect.triggered.connect(lambda: self.controller.disable_stream('ClosedPosition'))
     def open_warning(self):
         self.dialog = QMessageBox()
         self.dialog.setWindowTitle('Not connected to FXCM')
@@ -207,7 +204,7 @@ class GUI():
                     # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
                     self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
             """
-            self.data = self.controller.db.print_table('OpenPosition')
+            self.data = self.controller.db.get_table('OpenPosition')
             self.ui.tableWidget.setRowCount(len(self.data))
             self.ui.tableWidget.clicked.connect(position_info_review)
             for row, position in enumerate(self.data):
@@ -225,16 +222,23 @@ class GUI():
             self.dialog = QtWidgets.QDialog()
             self.ui = Ui_ClosedPositions()
             self.ui.setupUi(self.dialog)
-
+            pk = [''] # Holds a primary key for a db function
+            def delete_data():
+                pk[0] = self.ui.tableWidget.item(self.ui.tableWidget.currentRow(), 2).text()
+                self.controller.db.delete_from_table('ClosedPosition', pk[0])
             # Window functionality
-            self.data = self.controller.get_closed_positions()
+            self.data = self.controller.db.get_table('ClosedPosition')
             self.ui.tableWidget.setRowCount(len(self.data)) # Creating rows based on data
             # Populating the QTableWidget
             for row, position in enumerate(self.data):
                 for column, data in enumerate(position):
                     # setItem function cannot accept not QTableWidgetItem objects. QTableWidgetItem accepts only strings
                     # Thus, to populate the table, convert all the data to string first, then QTableWidgetItem
-                    self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(position[data])))
+                    self.ui.tableWidget.setItem(row, column, QTableWidgetItem(str(data)))
+            self.ui.tableWidget.clicked.connect(delete_data)
+            #self.ui.pushButton.clicked.connect(lambda: self.controller.db.delete_from_table('ClosedPosition', pk[0]))
+            self.ui.pushButton.clicked.connect(lambda: self.ui.tableWidget.removeRow(self.ui.tableWidget.currentRow()))
+            #self.ui.pushButton.triggered.connect(self.controller.db.)
             self.dialog.show()
     def open_position(self):
         if self.controller.connection_status == False:
@@ -345,7 +349,7 @@ class GUI():
             self.ui.checkBox.stateChanged.connect(lambda: change_status(self.ui.checkBox, self.ui.lineEdit_3))
             self.ui.checkBox_2.stateChanged.connect(lambda: change_status(self.ui.checkBox_2, self.ui.lineEdit_4))
             self.ui.buttonBox.accepted.connect(update_order_data)
-            self.ui.buttonBox.accepted.connect(lambda: print(self.controller.open_order(**order_data))) #Delete print
+            self.ui.buttonBox.accepted.connect(lambda: self.controller.open_order(**order_data)) #Delete print
             #self.ui.buttonBox.accepted.connect(lambda: self.db.insert_into_table('Orders', add_position_maker(self.controller.get_orders()[-1])))
             #self.ui.buttonBox.accepted.connect(self.db.test_print)
             self.dialog.show()

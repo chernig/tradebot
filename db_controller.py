@@ -196,7 +196,17 @@ class Db_Controller():
         self.db_open_connection()
         self.cursor.execute("SELECT * FROM {}".format(table))
         data = self.cursor.fetchall()
+        self.db_close_connection()
         print(data)
+    def get_table(self, table):
+        """
+        Supportive function to get DB values from GUI
+        Input: table->str Name of the table
+        Output: Returns all rows from the desired table
+        """
+        self.db_open_connection()
+        self.cursor.execute("SELECT * FROM {}".format(table))
+        data = self.cursor.fetchall()
         self.db_close_connection()
         return data
     def update_from_stream(self, table, columns, values, pk_value):
