@@ -365,6 +365,8 @@ class GUI():
                 "symbol": "EUR/USD",
                 "amount": 1000,
                 "is_buy": False,
+                "limit": 1,
+                "rate": 1,
                 "order_type": "Entry",
                 "time_in_force": "GTC"
             }
@@ -386,8 +388,10 @@ class GUI():
                 Function to transfer any changes in UI to the order_data dictionary
                 """
                 order_data['amount'] = float(self.ui.lineEdit.text())
-                order_data['rate'] = float(self.ui.lineEdit_2.text())
-                order_data['limit'] = float(self.ui.lineEdit_5.text())
+                if self.ui.lineEdit_2.isEnabled():
+                    order_data['rate'] = float(self.ui.lineEdit_2.text())
+                if self.ui.lineEdit_5.isEnabled():
+                    order_data['limit'] = float(self.ui.lineEdit_5.text())
                 if self.ui.lineEdit_3.isEnabled():
                     order_data['stop'] = float(self.ui.lineEdit_3.text())
                 if self.ui.lineEdit_4.isEnabled():
@@ -407,6 +411,8 @@ class GUI():
                 return data
             self.ui.checkBox.stateChanged.connect(lambda: change_status(self.ui.checkBox, self.ui.lineEdit_3))
             self.ui.checkBox_2.stateChanged.connect(lambda: change_status(self.ui.checkBox_2, self.ui.lineEdit_4))
+            self.ui.checkBox_4.stateChanged.connect(lambda: change_status(self.ui.checkBox_4, self.ui.lineEdit_2))
+            self.ui.checkBox_5.stateChanged.connect(lambda: change_status(self.ui.checkBox_5, self.ui.lineEdit_5))
             self.ui.buttonBox.accepted.connect(update_order_data)
             self.ui.buttonBox.accepted.connect(lambda: print(self.controller.open_order(**order_data))) #Delete print
             #self.ui.buttonBox.accepted.connect(lambda: self.db.insert_into_table('Orders', add_position_maker(self.controller.get_orders()[-1])))
