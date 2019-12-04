@@ -18,7 +18,6 @@ class Ui_OpenPos(object):
         self.formLayout.setObjectName("formLayout")
         self.comboBox = QtWidgets.QComboBox(OpenPos)
         self.comboBox.setObjectName("comboBox")
-        self.comboBox.addItem("")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.comboBox)
         self.radioButton = QtWidgets.QRadioButton(OpenPos)
         self.radioButton.setObjectName("radioButton")
@@ -83,9 +82,8 @@ class Ui_OpenPos(object):
     def retranslateUi(self, OpenPos):
         _translate = QtCore.QCoreApplication.translate
         OpenPos.setWindowTitle(_translate("OpenPos", "Dialog"))
-        self.comboBox.setItemText(0, _translate("OpenPos", "EUR/USD"))
         self.radioButton.setText(_translate("OpenPos", "Long"))
-        self.label_2.setText(_translate("OpenPos", "Amoiunt"))
+        self.label_2.setText(_translate("OpenPos", "Amount K"))
         self.checkBox.setText(_translate("OpenPos", "Stop"))
         self.label_3.setText(_translate("OpenPos", "Stop"))
         self.checkBox_2.setText(_translate("OpenPos", "Trailing Step"))

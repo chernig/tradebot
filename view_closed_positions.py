@@ -13,12 +13,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ClosedPositions(object):
     def setupUi(self, ClosedPositions):
         ClosedPositions.setObjectName("ClosedPositions")
-        ClosedPositions.resize(566, 355)
+        ClosedPositions.resize(1280, 600)
         self.gridLayout = QtWidgets.QGridLayout(ClosedPositions)
         self.gridLayout.setObjectName("gridLayout")
-        self.pushButton = QtWidgets.QPushButton(ClosedPositions)
-        self.pushButton.setObjectName("pushButton")
-        self.gridLayout.addWidget(self.pushButton, 1, 0, 1, 1)
         self.buttonBox = QtWidgets.QDialogButtonBox(ClosedPositions)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
@@ -27,7 +24,7 @@ class Ui_ClosedPositions(object):
         self.tableWidget = QtWidgets.QTableWidget(ClosedPositions)
         self.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableWidget.setObjectName("tableWidget")
-        self.tableWidget.setColumnCount(17)
+        self.tableWidget.setColumnCount(18)
         self.tableWidget.setRowCount(0)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(0, item)
@@ -63,6 +60,8 @@ class Ui_ClosedPositions(object):
         self.tableWidget.setHorizontalHeaderItem(15, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setHorizontalHeaderItem(16, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableWidget.setHorizontalHeaderItem(17, item)
         self.gridLayout.addWidget(self.tableWidget, 0, 0, 1, 2)
 
         self.retranslateUi(ClosedPositions)
@@ -72,8 +71,6 @@ class Ui_ClosedPositions(object):
 
     def retranslateUi(self, ClosedPositions):
         _translate = QtCore.QCoreApplication.translate
-        ClosedPositions.setWindowTitle(_translate("ClosedPositions", "Dialog"))
-        self.pushButton.setText(_translate("ClosedPositions", "Delete"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("ClosedPositions", "T"))
         item = self.tableWidget.horizontalHeaderItem(1)
@@ -108,6 +105,8 @@ class Ui_ClosedPositions(object):
         item.setText(_translate("ClosedPositions", "Open Time"))
         item = self.tableWidget.horizontalHeaderItem(16)
         item.setText(_translate("ClosedPositions", "Close Time"))
+        item = self.tableWidget.horizontalHeaderItem(17)
+        item.setText(_translate("ClosedPositions", "Position maker"))
 
 
 if __name__ == "__main__":

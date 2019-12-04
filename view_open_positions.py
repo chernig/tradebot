@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Positions(object):
     def setupUi(self, Positions):
         Positions.setObjectName("Positions")
-        Positions.resize(520, 348)
+        Positions.resize(1280, 600)
         self.gridLayout = QtWidgets.QGridLayout(Positions)
         self.gridLayout.setObjectName("gridLayout")
         self.tableWidget = QtWidgets.QTableWidget(Positions)

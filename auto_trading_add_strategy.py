@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_autotrading_add_strategy_page(object):
     def setupUi(self, autotrading_add_strategy_page):
         autotrading_add_strategy_page.setObjectName("autotrading_add_strategy_page")
-        autotrading_add_strategy_page.resize(747, 596)
+        autotrading_add_strategy_page.resize(1280, 720)
         autotrading_add_strategy_page.setAutoFillBackground(True)
         self.verticalLayout = QtWidgets.QVBoxLayout(autotrading_add_strategy_page)
         self.verticalLayout.setObjectName("verticalLayout")

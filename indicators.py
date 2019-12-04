@@ -1,6 +1,10 @@
+"""
+This file includes function for calculating indicators
+"""
+
+
 import numpy as np
 import pandas as pd
-
 from pyti.simple_moving_average import simple_moving_average as sma
 from pyti.exponential_moving_average import exponential_moving_average as ema
 from pyti.bollinger_bands import upper_bollinger_band as bbu
@@ -22,9 +26,6 @@ warnings.filterwarnings("ignore")
 
 pd.options.mode.chained_assignment = None
 np.seterr(divide='ignore', invalid='ignore')
-
-
-
 
 
 
@@ -50,7 +51,7 @@ def donchian_channel(data, period):
 
 
 
-def linear_regression_channel(data, period, standard_deviation, standard_deviation_exit):
+def linear_regression_channel(data, period, standard_deviation):
     try:
         x = data.index.values.reshape(-1,1)
         x=x.astype(float)
@@ -60,24 +61,19 @@ def linear_regression_channel(data, period, standard_deviation, standard_deviati
         predictions = reg.predict(x)
         linear_regression=predictions.flatten()
         standard_deviation=np.std(y)*standard_deviation
-        standard_deviation_exit=np.std(y)*standard_deviation_exit
         upper_line=linear_regression+standard_deviation
         lower_line=linear_regression-standard_deviation
-        upper_line_exit=linear_regression+standard_deviation_exit
-        lower_line_exit=linear_regression-standard_deviation_exit
         
         if len(linear_regression)>0:
             slope=round(((linear_regression[-1]-linear_regression[0])/period)*100, 8)
         else:
             slope=float(0)
         channel_width=upper_line[-1]-lower_line[-1]
-        return linear_regression, upper_line, lower_line, upper_line_exit, lower_line_exit, slope, channel_width
+        return linear_regression, upper_line, lower_line, slope, channel_width
     except:
         slope=float(0)
-        return linear_regression, upper_line, lower_line, upper_line_exit, lower_line_exit, slope, channel_width
+        return linear_regression, upper_line, lower_line, slope, channel_width
     
-
-
 
 
 def vidya(data, short_period, long_period):
@@ -93,7 +89,6 @@ def vidya(data, short_period, long_period):
             vidya_list.append(alpha*data.bidclose.iloc[i]+(1-alpha)*vidya_list[-1])
     return vidya_list
     
-
 
 
 def ssl_vidya(data, short_period, long_period):
@@ -186,8 +181,6 @@ def adx(data, n, n_ADX):
     return final_adx
 
 
-
-
 def kijunsen(data, period):
     kijunsen_list=[]
     for i, j in enumerate(data.bidclose):
@@ -222,7 +215,6 @@ def ssl(data, period):
     
         elif hlv == 1:
             ssl_list.append(data['ssl_low_ma'].iloc[i])
-
     
     return ssl_list
 

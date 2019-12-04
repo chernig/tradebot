@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_autotrading_edit_strategy_page(object):
     def setupUi(self, autotrading_edit_strategy_page):
         autotrading_edit_strategy_page.setObjectName("autotrading_edit_strategy_page")
-        autotrading_edit_strategy_page.resize(678, 596)
+        autotrading_edit_strategy_page.resize(1280, 720)
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(autotrading_edit_strategy_page)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout()

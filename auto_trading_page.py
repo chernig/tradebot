@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_autotrading_page(object):
     def setupUi(self, autotrading_page):
         autotrading_page.setObjectName("autotrading_page")
-        autotrading_page.resize(791, 553)
+        autotrading_page.resize(1280, 720)
         self.verticalLayout_11 = QtWidgets.QVBoxLayout(autotrading_page)
         self.verticalLayout_11.setObjectName("verticalLayout_11")
         self.verticalLayout_6 = QtWidgets.QVBoxLayout()
@@ -103,7 +103,7 @@ class Ui_autotrading_page(object):
         self.label_7.setText(_translate("autotrading_page", "Strategy status"))
         self.label_8.setText(_translate("autotrading_page", "Last start"))
         self.label_9.setText(_translate("autotrading_page", "Last stop"))
-        self.label_10.setText(_translate("autotrading_page", "Stopped"))
+        self.label_10.setText(_translate("autotrading_page", "Not Started"))
         self.label_11.setText(_translate("autotrading_page", "Never"))
         self.label_12.setText(_translate("autotrading_page", "Never"))
 

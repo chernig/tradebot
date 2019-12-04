@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'app_login_page.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.0
+# Created by: PyQt5 UI code generator 5.13.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -10,13 +10,13 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(400, 300)
-        self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
+class Ui_app_login(object):
+    def setupUi(self, app_login):
+        app_login.setObjectName("app_login")
+        app_login.resize(400, 300)
+        self.verticalLayout = QtWidgets.QVBoxLayout(app_login)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.stackedWidget = QtWidgets.QStackedWidget(Dialog)
+        self.stackedWidget = QtWidgets.QStackedWidget(app_login)
         self.stackedWidget.setObjectName("stackedWidget")
         self.page = QtWidgets.QWidget()
         self.page.setObjectName("page")
@@ -105,30 +105,30 @@ class Ui_Dialog(object):
         self.stackedWidget.addWidget(self.page_2)
         self.verticalLayout.addWidget(self.stackedWidget)
 
-        self.retranslateUi(Dialog)
-        self.stackedWidget.setCurrentIndex(1)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
+        self.retranslateUi(app_login)
+        self.stackedWidget.setCurrentIndex(0)
+        QtCore.QMetaObject.connectSlotsByName(app_login)
 
-    def retranslateUi(self, Dialog):
+    def retranslateUi(self, app_login):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.label.setText(_translate("Dialog", "User name"))
-        self.label_2.setText(_translate("Dialog", "Password"))
-        self.pushButton_3.setText(_translate("Dialog", "Cancel"))
-        self.pushButton_2.setText(_translate("Dialog", "Create account"))
-        self.pushButton.setText(_translate("Dialog", "Login"))
-        self.label_3.setText(_translate("Dialog", "User name"))
-        self.label_4.setText(_translate("Dialog", "Password"))
-        self.label_5.setText(_translate("Dialog", "Password confirmation"))
-        self.pushButton_5.setText(_translate("Dialog", "Cancel"))
-        self.pushButton_4.setText(_translate("Dialog", "Create account"))
+        app_login.setWindowTitle(_translate("app_login", "Dialog"))
+        self.label.setText(_translate("app_login", "User name"))
+        self.label_2.setText(_translate("app_login", "Password"))
+        self.pushButton_3.setText(_translate("app_login", "Cancel"))
+        self.pushButton_2.setText(_translate("app_login", "Create account"))
+        self.pushButton.setText(_translate("app_login", "Login"))
+        self.label_3.setText(_translate("app_login", "User name"))
+        self.label_4.setText(_translate("app_login", "Password"))
+        self.label_5.setText(_translate("app_login", "Password confirmation"))
+        self.pushButton_5.setText(_translate("app_login", "Cancel"))
+        self.pushButton_4.setText(_translate("app_login", "Create account"))
 
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    Dialog = QtWidgets.QDialog()
-    ui = Ui_Dialog()
-    ui.setupUi(Dialog)
-    Dialog.show()
+    app_login = QtWidgets.QDialog()
+    ui = Ui_app_login()
+    ui.setupUi(app_login)
+    app_login.show()
     sys.exit(app.exec_())
